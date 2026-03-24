@@ -7,12 +7,17 @@
  * 核心种子提示词
  * 雪花写作法第一步 - 用单句概括故事本质
  */
-export const coreSeed = (params) => `
-作为专业作家，请用"雪花写作法"第一步构建故事核心：
+export const coreSeed = (params) => {
+  // 如果有对话整理结果，优先使用对话中的设定
+  const chatContext = params.storyChatSummary 
+    ? `\n\n【用户通过对话提供的故事设定】\n${params.storyChatSummary}\n\n请优先参考以上设定内容，在此基础上提炼故事核心。`
+    : ''
+
+  return `作为专业作家，请用"雪花写作法"第一步构建故事核心：
 主题：${params.topic}
 类型：${params.genre}
 篇幅：约${params.numberOfChapters}章（每章${params.wordNumber}字）
-
+${chatContext}
 请根据【${params.genre}】类型的特点，用单句公式概括故事本质。
 
 不同类型的示例：
@@ -29,17 +34,22 @@ export const coreSeed = (params) => `
 
 仅返回故事核心文本，不要解释任何内容。
 `
+}
 
 /**
  * 角色动力学提示词
  * 设计具有动态变化潜力的核心角色
  */
-export const characterDynamics = (params) => `
-基于以下元素：
+export const characterDynamics = (params) => {
+  const chatContext = params.storyChatSummary 
+    ? `\n\n【用户通过对话提供的故事设定】\n${params.storyChatSummary}\n\n请优先参考以上设定中关于角色的内容。`
+    : ''
+
+  return `基于以下元素：
 - 小说类型：${params.genre || '通用'}
 - 内容指导：${params.userGuidance || '无'}
 - 核心种子：${params.coreSeed}
-
+${chatContext}
 请设计3-6个具有动态变化潜力的核心角色，每个角色需包含：
 特征：
 - 背景、外貌、性别、年龄、职业等
@@ -64,17 +74,22 @@ export const characterDynamics = (params) => `
 要求：
 仅给出最终文本，不要解释任何内容。
 `
+}
 
 /**
  * 世界观构建提示词
  * 三维交织法构建世界观
  */
-export const worldBuilding = (params) => `
-基于以下元素：
+export const worldBuilding = (params) => {
+  const chatContext = params.storyChatSummary 
+    ? `\n\n【用户通过对话提供的故事设定】\n${params.storyChatSummary}\n\n请优先参考以上设定中关于世界观的内容。`
+    : ''
+
+  return `基于以下元素：
 - 小说类型：${params.genre || '通用'}
 - 内容指导：${params.userGuidance || '无'}
 - 核心故事："${params.coreSeed}"
-
+${chatContext}
 为服务上述内容，请构建适合【${params.genre || '通用'}】类型的世界观：
 
 1. 物理维度：
@@ -98,19 +113,24 @@ export const worldBuilding = (params) => `
 每个维度至少包含3个可与角色决策产生互动的动态元素。
 仅给出最终文本，不要解释任何内容。
 `
+}
 
 /**
  * 情节架构提示词
  * 三幕式悬念结构
  */
-export const plotArchitecture = (params) => `
-基于以下元素：
+export const plotArchitecture = (params) => {
+  const chatContext = params.storyChatSummary 
+    ? `\n\n【用户通过对话提供的故事设定】\n${params.storyChatSummary}\n\n请优先参考以上设定中关于情节和结局的内容。`
+    : ''
+
+  return `基于以下元素：
 - 小说类型：${params.genre || '通用'}
 - 内容指导：${params.userGuidance || '无'}
 - 核心种子：${params.coreSeed}
 - 角色体系：${params.characterDynamics}
 - 世界观：${params.worldBuilding}
-
+${chatContext}
 请根据【${params.genre || '通用'}】类型设计三幕式情节架构：
 
 第一幕（开端） 
@@ -135,6 +155,7 @@ export const plotArchitecture = (params) => `
 每个阶段需包含3个关键节点及其伏笔设计。
 仅给出最终文本，不要解释任何内容。
 `
+}
 
 /**
  * 角色状态提示词

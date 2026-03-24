@@ -6,13 +6,21 @@ import axios from 'axios'
 /**
  * Create chat completion request
  * 创建聊天补全请求
+ * @param {Object} config - API 配置
+ * @param {string|Array} promptOrMessages - 字符串 prompt（单轮）或 messages 数组（多轮）
+ * @param {Function} onStream - 流式回调 (delta, fullContent) => void
  */
-export async function chatCompletion(config, prompt, onStream = null) {
+export async function chatCompletion(config, promptOrMessages, onStream = null) {
   const { baseUrl, apiKey, model, temperature, maxTokens, timeout } = config
+
+  // Support both string prompt and messages array - 支持字符串和消息数组两种方式
+  const messages = Array.isArray(promptOrMessages)
+    ? promptOrMessages
+    : [{ role: 'user', content: promptOrMessages }]
 
   const requestBody = {
     model,
-    messages: [{ role: 'user', content: prompt }],
+    messages,
     temperature,
     max_tokens: maxTokens,
     stream: !!onStream

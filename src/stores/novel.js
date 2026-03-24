@@ -45,7 +45,13 @@ export const useNovelStore = defineStore('novel', () => {
       chapterGraphs: {},
       // Generation status - 生成状态
       architectureGenerated: false,
-      blueprintGenerated: false
+      blueprintGenerated: false,
+      // Story chat - 故事对话
+      storyChat: {
+        messages: [],        // [{role: 'user'|'assistant', content: string, timestamp: string}]
+        summary: '',         // 整理后的设定
+        summarizedAt: null   // 整理时间
+      }
     }
     projects.value.unshift(newProject)
     saveToStorage()
@@ -96,6 +102,47 @@ export const useNovelStore = defineStore('novel', () => {
     generationProgress.value = progress
   }
 
+  // Add chat message - 添加对话消息
+  function addChatMessage(projectId, message) {
+    const project = projects.value.find(p => p.id === projectId)
+    if (project) {
+      if (!project.storyChat) {
+        project.storyChat = { messages: [], summary: '', summarizedAt: null }
+      }
+      project.storyChat.messages.push({
+        ...message,
+        timestamp: new Date().toISOString()
+      })
+      saveToStorage()
+    }
+  }
+
+  // Update chat summary - 更新对话整理结果
+  function updateChatSummary(projectId, summary) {
+    const project = projects.value.find(p => p.id === projectId)
+    if (project) {
+      if (!project.storyChat) {
+        project.storyChat = { messages: [], summary: '', summarizedAt: null }
+      }
+      project.storyChat.summary = summary
+      project.storyChat.summarizedAt = new Date().toISOString()
+      saveToStorage()
+    }
+  }
+
+  // Clear chat - 清空对话
+  function clearChat(projectId) {
+    const project = projects.value.find(p => p.id === projectId)
+    if (project) {
+      project.storyChat = {
+        messages: [],
+        summary: '',
+        summarizedAt: null
+      }
+      saveToStorage()
+    }
+  }
+
   return {
     projects,
     currentProject,
@@ -107,6 +154,9 @@ export const useNovelStore = defineStore('novel', () => {
     updateProject,
     deleteProject,
     setCurrentProject,
-    setGenerating
+    setGenerating,
+    addChatMessage,
+    updateChatSummary,
+    clearChat
   }
 })

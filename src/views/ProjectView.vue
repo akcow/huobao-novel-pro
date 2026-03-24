@@ -5,11 +5,12 @@ import { useNovelStore } from '../stores/novel'
 import { useSettingsStore } from '../stores/settings'
 import { generateArchitecture, generateChapterBlueprint, parseChapterBlueprint, exportNovelToText, exportNovelToMarkdown } from '../api/generator'
 import { useMessage, useDialog, NButton, NTabs, NTabPane, NCard, NProgress, NTag, NIcon } from 'naive-ui'
-import { ArrowBackOutline, WarningOutline, GridOutline, ListOutline, PencilOutline, DownloadOutline, DocumentTextOutline, ReloadOutline, CompassOutline } from '@vicons/ionicons5'
+import { ArrowBackOutline, WarningOutline, GridOutline, ListOutline, PencilOutline, DownloadOutline, DocumentTextOutline, ReloadOutline, CompassOutline, ChatbubblesOutline } from '@vicons/ionicons5'
 import ArchitecturePanel from '../components/ArchitecturePanel.vue'
 import ChapterBlueprintPanel from '../components/ChapterBlueprintPanel.vue'
 import ChapterWriterPanel from '../components/ChapterWriterPanel.vue'
 import InspirationCompass from '../components/compass/InspirationCompass.vue'
+import StoryChatPanel from '../components/StoryChatPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,7 +20,7 @@ const message = useMessage()
 const dialog = useDialog()
 
 // Current tab - 当前标签页
-const activeTab = ref('architecture')
+const activeTab = ref('chat')
 
 // Generation state - 生成状态
 const isGenerating = ref(false)
@@ -134,6 +135,11 @@ const writtenChaptersCount = computed(() => {
   return Object.keys(project.value?.chapters || {}).length
 })
 
+// Chat messages count - 对话消息数
+const chatMessagesCount = computed(() => {
+  return project.value?.storyChat?.messages?.length || 0
+})
+
 // Export novel - 导出小说
 function handleExport(format) {
   if (!project.value) return
@@ -239,6 +245,21 @@ async function confirmRegenerate(type) {
 
     <!-- Tabs - 标签页 -->
     <n-tabs v-model:value="activeTab" type="segment" animated class="novel-tabs">
+      <!-- Story Chat tab - 故事对话标签页 -->
+      <n-tab-pane name="chat">
+        <template #tab>
+          <div class="flex items-center gap-2">
+            <ChatbubblesOutline class="w-4 h-4" />
+            <span>故事对话</span>
+            <n-tag v-if="chatMessagesCount > 0" type="info" size="small" :bordered="false" round>
+              {{ chatMessagesCount }}
+            </n-tag>
+          </div>
+        </template>
+        
+        <StoryChatPanel :project="project" @switch-to-architecture="activeTab = 'architecture'" />
+      </n-tab-pane>
+
       <!-- Architecture tab - 架构标签页 -->
       <n-tab-pane name="architecture">
         <template #tab>

@@ -32,7 +32,8 @@ export async function generateArchitecture(project, apiConfig, onProgress) {
     genre: formatGenre(project.genre),
     numberOfChapters: project.numberOfChapters,
     wordNumber: project.wordNumber,
-    userGuidance: project.userGuidance || ''
+    userGuidance: project.userGuidance || '',
+    storyChatSummary: project.storyChat?.summary || ''  // 对话整理结果
   }
 
   // Step 1: Core seed - 核心种子
