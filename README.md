@@ -16,6 +16,7 @@
 
 - 📖 **雪花写作法** - 从核心种子开始，逐步扩展角色、世界观、情节架构
 - 💬 **故事对话** - 以微信式轮番聊天收集故事信息，支持与 AI 逐步共创设定，并支持一键应用到小说架构
+- 🎙️ **语音实时对话** - 支持语音对话模式，边说边聊，AI 语音回复，对话内容同步显示
 - 🧠 **对话整理成设定** - 一键提取对话中的题材、主角、冲突、世界观、结局倾向，支持自动跳转至架构生成面板
 - 🎭 **角色弧光理论** - 设计具有动态变化潜力的角色，包含驱动力三角和关系冲突网
 - 🌍 **世界观构建** - AI 自动生成符合故事背景的世界设定
@@ -63,10 +64,22 @@ npm run build
 首次使用需要配置 API：
 
 1. 点击右上角设置图标 ⚙️
-2. 填入 API Base URL 和 API Key
+2. 在「API 设置」标签页填入 API Base URL 和 API Key
 3. 选择需要使用的模型
 
 支持 OpenAI 兼容的 API 接口。
+
+### 语音对话配置（可选）
+
+如需使用语音实时对话功能，需要额外配置：
+
+1. 在「语音设置」标签页填写：
+   - **App ID**: 从火山引擎控制台获取
+   - **Access Token**: 从火山引擎控制台获取
+2. 选择模型版本和音色
+3. 保存设置
+
+获取凭证地址：[火山引擎语音控制台](https://console.volcengine.com/speech/app)
 
 ## 📝 创作流程
 
@@ -89,6 +102,62 @@ npm run build
 - 生成联动：当已整理设定后，可直接在该页点击「基于对话生成架构」。
 - 兼容性：继续使用 OpenAI 兼容接口（`/chat/completions`）。
 
+### 语音实时对话功能
+
+#### 启动步骤
+
+**第一步：启动代理服务器**（必需）
+
+由于浏览器 WebSocket 无法设置自定义请求头，需要通过本地代理服务器转发请求：
+
+```bash
+npm run voice-proxy
+```
+
+看到以下输出表示启动成功：
+```
+==================================================
+Voice Proxy Server Started
+==================================================
+Local WebSocket: ws://localhost:3100
+Health check: http://localhost:3100/health
+==================================================
+```
+
+**第二步：启动前端应用**
+
+```bash
+# 新开一个终端窗口
+npm run dev
+```
+
+**第三步：使用语音对话**
+
+1. 打开浏览器访问 http://localhost:5173/huobao-novel/
+2. 进入项目详情页 → 故事对话标签
+3. 点击「语音模式」按钮进入语音对话
+4. 点击麦克风按钮开始说话，再次点击结束
+5. AI 会通过语音回复，对话内容同步显示
+
+#### 语音功能特点
+
+- 🎤 **点击说话** - 点击麦克风开始录音，再次点击结束
+- 🔊 **实时语音** - AI 通过语音实时回复
+- 📝 **文字同步** - 语音对话内容同步显示在聊天记录中
+- 🎚️ **音量控制** - 可调节 AI 回复音量
+- 🔄 **模式切换** - 语音和文字模式可在同一对话中切换
+
+#### 音色选择
+
+**O2.0 版本**（推荐）：
+- vv - 活泼灵动的女声
+- xiaohe - 甜美活泼的女声（台湾口音）
+- yunzhou - 清爽沉稳的男声
+- xiaotian - 清爽磁性的男声
+
+**SC2.0 版本**（支持角色扮演）：
+- 包含傲娇女友、成熟总裁等 21 种克隆音色
+
 ## 🛠️ 技术栈
 
 - **框架**: [Vue 3](https://vuejs.org/) + [Vite](https://vitejs.dev/)
@@ -105,7 +174,10 @@ npm run build
 src/
 ├── api/          # API 请求封装
 │   ├── generator.js            # 生成流程（含基于对话生成架构）
-│   └── llm.js                  # LLM 调用（含多轮 messages 聊天）
+│   ├── llm.js                  # LLM 调用（含多轮 messages 聊天）
+│   ├── chat.js                 # 故事对话 API
+│   ├── voice-websocket.js      # 语音 WebSocket 客户端
+│   └── audio-handler.js        # 音频录制和播放处理
 ├── assets/       # 静态资源
 ├── components/   # 组件
 │   ├── ArchitecturePanel.vue      # 小说架构面板
@@ -113,18 +185,21 @@ src/
 │   ├── ChapterWriterPanel.vue     # 章节写作面板
 │   ├── CreateProjectDialog.vue    # 创建项目对话框
 │   ├── ProjectCard.vue            # 项目卡片
-│   ├── StoryChatPanel.vue         # 故事对话面板
-│   └── SettingsDialog.vue         # 设置对话框
+│   ├── StoryChatPanel.vue         # 故事对话面板（含语音模式）
+│   └── SettingsDialog.vue         # 设置对话框（含语音配置）
 ├── prompts/      # AI 提示词模板
 │   ├── interview.js               # 故事对话/整理设定提示词
 │   └── index.js                   # 提示词统一管理
 ├── router/       # 路由配置
 ├── stores/       # 状态管理
-│   └── novel.js                   # 项目状态（含 storyChatMessages 等字段）
+│   ├── novel.js                   # 项目状态
+│   └── settings.js                # 设置状态（含语音配置）
 ├── views/        # 页面视图
 │   ├── HomeView.vue     # 首页
-│   └── ProjectView.vue  # 项目详情页（含故事对话标签）
+│   └── ProjectView.vue  # 项目详情页
 └── main.js       # 入口文件
+
+voice-proxy-server.js  # 语音代理服务器
 ```
 
 ## 🤝 贡献
